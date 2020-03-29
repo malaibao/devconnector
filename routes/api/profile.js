@@ -8,6 +8,7 @@ const axios = require('axios');
 
 const Profile = require('../../models/Profile');
 const User = require('../../models/User');
+const Post = require('../../models/Post');
 
 // @route   GET api/profile/me
 // @desc    Get current user's profile
@@ -76,7 +77,10 @@ router.post(
     if (status) profileFields.status = status;
     if (githubusername) profileFields.githubusername = githubusername;
     if (skills) {
-      (profileFields.skills = skills.split(',')).map(skill => skill.trim()); // trim the space
+      profileFields.skills = skills
+        .toString()
+        .split(',')
+        .map(skill => skill.trim()); // trim the space
     }
 
     profileFields.social = {};
@@ -151,6 +155,8 @@ router.get('/user/:user_id', async (req, res) => {
 // @access  Private
 router.delete('/', auth, async (req, res) => {
   try {
+    // Remove posts
+    await Post.deleteMany({ user: req.user.id });
     // Remove profile
     await Profile.findOneAndRemove({ user: req.user.id });
     // Remove user
